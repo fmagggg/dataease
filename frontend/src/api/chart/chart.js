@@ -71,3 +71,14 @@ export function ajaxGetDataOnly(id, data) {
     data
   })
 }
+
+export function ajaxGetAllDataOnly(id, data) {
+  return request({
+    url: '/chart/view/getAllData/' + id,
+    method: 'post',
+    loading: true,
+    hideMsg: true,
+    timeout: 30000,
+    data
+  })
+}

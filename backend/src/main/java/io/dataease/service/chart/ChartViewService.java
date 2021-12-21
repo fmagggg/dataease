@@ -186,6 +186,12 @@ public class ChartViewService {
         return calcData(view, request, request.isCache());
     }
 
+    public ChartViewDTO getAllData(String id, ChartExtRequest request) throws Exception {
+        ChartViewDTO view = this.getOneWithPermission(id);
+        view.setResultMode("all");
+        return calcAllData(view, request, request.isCache());
+    }
+
     public ChartViewDTO calcData(ChartViewDTO view, ChartExtRequest requestList, boolean cache) throws Exception {
         if (ObjectUtils.isEmpty(view)) {
             throw new RuntimeException(Translator.get("i18n_chart_delete"));
@@ -488,6 +494,100 @@ public class ChartViewService {
 
         dto.setDrill(isDrill);
         dto.setDrillFilters(drillFilters);
+        return dto;
+    }
+
+    public ChartViewDTO calcAllData(ChartViewDTO view, ChartExtRequest requestList, boolean cache) throws Exception {
+        if (ObjectUtils.isEmpty(view)) {
+            throw new RuntimeException(Translator.get("i18n_chart_delete"));
+        }
+        List<ChartViewFieldDTO> xAxis = new Gson().fromJson(view.getXAxis(), new TypeToken<List<ChartViewFieldDTO>>() {
+        }.getType());
+        List<ChartViewFieldDTO> yAxis = new Gson().fromJson(view.getYAxis(), new TypeToken<List<ChartViewFieldDTO>>() {
+        }.getType());
+        if (StringUtils.equalsIgnoreCase(view.getType(), "chart-mix")) {
+            List<ChartViewFieldDTO> yAxisExt = new Gson().fromJson(view.getYAxisExt(), new TypeToken<List<ChartViewFieldDTO>>() {
+            }.getType());
+            yAxis.addAll(yAxisExt);
+        }
+        List<ChartViewFieldDTO> extStack = new Gson().fromJson(view.getExtStack(), new TypeToken<List<ChartViewFieldDTO>>() {
+        }.getType());
+        List<ChartViewFieldDTO> extBubble = new Gson().fromJson(view.getExtBubble(), new TypeToken<List<ChartViewFieldDTO>>() {
+        }.getType());
+        List<ChartFieldCustomFilterDTO> fieldCustomFilter = new Gson().fromJson(view.getCustomFilter(), new TypeToken<List<ChartFieldCustomFilterDTO>>() {
+        }.getType());
+
+        if (StringUtils.equalsIgnoreCase("text", view.getType())
+                || StringUtils.equalsIgnoreCase("gauge", view.getType())
+                || StringUtils.equalsIgnoreCase("liquid", view.getType())) {
+            xAxis = new ArrayList<>();
+            if (CollectionUtils.isEmpty(yAxis)) {
+                ChartViewDTO dto = new ChartViewDTO();
+                BeanUtils.copyBean(dto, view);
+                return dto;
+            }
+        } else if (StringUtils.equalsIgnoreCase("table-info", view.getType())) {
+            yAxis = new ArrayList<>();
+            if (CollectionUtils.isEmpty(xAxis)) {
+                ChartViewDTO dto = new ChartViewDTO();
+                BeanUtils.copyBean(dto, view);
+                return dto;
+            }
+        } else {
+            if (CollectionUtils.isEmpty(xAxis) && CollectionUtils.isEmpty(yAxis)) {
+                ChartViewDTO dto = new ChartViewDTO();
+                BeanUtils.copyBean(dto, view);
+                return dto;
+            }
+        }
+
+        // 获取数据集,需校验权限
+        DatasetTable table = dataSetTableService.get(view.getTableId());
+        if (ObjectUtils.isEmpty(table)) {
+            throw new RuntimeException(Translator.get("i18n_dataset_delete_or_no_permission"));
+        }
+        // 判断连接方式，直连或者定时抽取 table.mode
+        DatasourceRequest datasourceRequest = new DatasourceRequest();
+        List<String[]> data = new ArrayList<>();
+        if (table.getMode() == 1) {// 抽取
+            // 连接doris，构建doris数据源查询
+            Datasource ds = (Datasource) CommonBeanFactory.getBean("DorisDatasource");
+            DatasourceProvider datasourceProvider = ProviderFactory.getProvider(ds.getType());
+            datasourceRequest.setDatasource(ds);
+            String tableName = "ds_" + table.getId().replaceAll("-", "_");
+            datasourceRequest.setTable(tableName);
+            QueryProvider qp = ProviderFactory.getQueryProvider(ds.getType());
+            datasourceRequest.setQuery(qp.getSQL(tableName, xAxis, yAxis, null, null, ds, view));
+            // 仪表板有参数不实用缓存
+            if (!cache || CollectionUtils.isNotEmpty(requestList.getFilter())
+                    || CollectionUtils.isNotEmpty(requestList.getLinkageFilters())
+                    || CollectionUtils.isNotEmpty(requestList.getDrill())) {
+                data = datasourceProvider.getData(datasourceRequest);
+            } else {
+                try {
+                    data = cacheViewData(datasourceProvider, datasourceRequest, view.getId());
+                } catch (Exception e) {
+                    LogUtil.error(e);
+                } finally {
+                    // 如果当前对象被锁 且 当前线程冲入次数 > 0 则释放锁
+                    if (lock.isLocked() && lock.getHoldCount() > 0) {
+                        lock.unlock();
+                    }
+                }
+            }
+        }
+
+        Map<String, Object> map = new TreeMap<>();
+
+        // table组件，明细表，也用于导出数据
+        Map<String, Object> mapTableNormal = transTableNormal(xAxis, yAxis, view, data, extStack);
+
+        map.putAll(mapTableNormal);
+
+        ChartViewDTO dto = new ChartViewDTO();
+        BeanUtils.copyBean(dto, view);
+        dto.setData(map);
+        dto.setSql(datasourceRequest.getQuery());
         return dto;
     }
 

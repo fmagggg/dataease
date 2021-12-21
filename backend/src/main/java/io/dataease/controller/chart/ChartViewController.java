@@ -65,6 +65,12 @@ public class ChartViewController {
         return chartViewService.getData(id, requestList);
     }
 
+    @ApiOperation("数据集")
+    @PostMapping("/getAllData/{id}")
+    public ChartViewDTO getAllData(@PathVariable String id, @RequestBody ChartExtRequest requestList) throws Exception {
+        return chartViewService.getAllData(id, requestList);
+    }
+
     @ApiOperation("视图详情")
     @PostMapping("chartDetail/{id}")
     public ChartDetail chartDetail(@PathVariable String id) {

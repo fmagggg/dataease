@@ -13,6 +13,7 @@
 
 <script>
 
+import { ajaxGetData, ajaxGetAllDataOnly, post } from '@/api/chart/chart'
 import ChartComponent from '@/views/chart/components/ChartComponent.vue'
 import TableNormal from '@/views/chart/components/table/TableNormal'
 import LabelNormal from '@/views/chart/components/normal/LabelNormal'
@@ -78,9 +79,28 @@ export default {
       const excelName = this.chart.name
       export_json_to_excel(excelHeader, excelData, excelName)
     },
+    exportAllDataExcel() {
+        this.getExportData(this.chart.id)
+    },
 
     renderComponent() {
       return this.chart.render
+    },
+    getExportData(id) {
+        ajaxGetAllDataOnly(id, {
+          filter: [],
+          drill: this.drillClickDimensionList
+        }).then(response => {
+            let res = JSON.parse(JSON.stringify(response.data))
+            const excelHeader = res.data.fields.map(item => item.name)
+            const excelHeaderKeys = res.data.fields.map(item => item.dataeaseName)
+            const excelData = res.data.tableRow.map(item => excelHeaderKeys.map(i => item[i]))
+            const excelName = this.chart.name
+            export_json_to_excel(excelHeader, excelData, excelName)
+        }).catch(err => {
+
+          return true
+        })
     }
   }
 }

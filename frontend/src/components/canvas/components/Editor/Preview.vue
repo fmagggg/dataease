@@ -33,6 +33,10 @@
               <svg-icon icon-class="ds-excel" class="ds-icon-excel" />
               {{ $t('chart.export_details') }}
             </el-button>
+            <el-button size="mini" @click="exportAllDataExcel">
+              <svg-icon icon-class="ds-excel" class="ds-icon-excel" />
+              {{ $t('chart.export_all') }}
+            </el-button>
           </span>
           <UserViewDialog ref="userViewDialog" :chart="showChartInfo" :chart-table="showChartTableInfo" />
         </el-dialog>
@@ -241,6 +245,9 @@ export default {
     },
     exportExcel() {
       this.$refs['userViewDialog'].exportExcel()
+    },
+    exportAllDataExcel() {
+      this.$refs['userViewDialog'].exportAllDataExcel()
     },
     deselectCurComponent(e) {
       if (!this.isClickComponent) {

@@ -890,6 +890,7 @@ export default {
     color_spiritual: '灵动',
     chart_details: '视图明细',
     export_details: '导出明细',
+    export_all: '导出数据集',
     chart_data: '数据',
     chart_style: '样式',
     drag_block_type_axis: '类别轴',
