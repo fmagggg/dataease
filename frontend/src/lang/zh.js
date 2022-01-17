@@ -344,7 +344,12 @@ export default {
     },
     ukey_title: 'API Keys',
     thumbnail: '缩略图',
-    confirm_delete: '确认删除'
+    confirm_delete: '确认删除',
+    treeselect: {
+      no_children_text: '没有子节点',
+      no_options_text: '没有可用选项',
+      no_results_text: '没有匹配的结果'
+    }
   },
   documentation: {
     documentation: '文档',
@@ -977,7 +982,33 @@ export default {
     next: '下一步',
     select_dataset: '选择数据集',
     select_chart_type: '选择图表类型',
-    recover: '重置'
+    recover: '重置',
+    yoy_label: '同比/环比',
+    yoy_setting: '同环比设置',
+    pls_select_field: '请选择字段',
+    compare_date: '对比日期',
+    compare_type: '对比类型',
+    compare_data: '数据设置',
+    year_yoy: '年同比',
+    month_yoy: '月同比',
+    quarter_yoy: '季同比',
+    week_yoy: '周同比',
+    day_yoy: '日同比',
+    year_mom: '年环比',
+    month_mom: '月环比',
+    quarter_mom: '季环比',
+    week_mom: '周环比',
+    day_mom: '日环比',
+    data_sub: '对比差值',
+    data_percent: '差值百分比',
+    compare_calc_expression: '计算公式',
+    and: '与',
+    or: '或',
+    logic_exp: '逻辑条件',
+    enum_exp: '字段枚举值',
+    pls_slc: '请选择',
+    filter_exp: '过滤值',
+    filter_type: '过滤方式'
   },
   dataset: {
     sheet_warn: '有多个 Sheet 页，默认抽取第一个',
@@ -1158,6 +1189,22 @@ export default {
     confirm_sync_field_tips: '同步字段可能会导致已编辑字段发生变更，请确认',
     sync_success: '同步成功',
     sync_success_1: '同步成功，请对当前数据集重新执行数据同步操作',
+    row_permission: {
+      type: '类型',
+      name: '名称',
+      condition: '条件',
+      value: '值',
+      add: '添加行权限',
+      edit: '编辑行权限',
+      please_select_field: '请选择字段',
+      please_select_auth_type: '请选择授权类型',
+      please_select_auth_id: '请选择授权目标',
+      row_permission_not_empty: '行权限不能为空',
+      search_by_filed_name: '根据字段名称搜索',
+      auth_type: '授权类型',
+      auth_obj: '授权对象'
+    },
+    row_permissions: '行权限',
     union_data: '关联数据集',
     add_union_table: '添加关联数据集',
     edit_union: '编辑关联数据集',
@@ -1168,7 +1215,8 @@ export default {
     add_union_field: '添加关联字段',
     union_error: '关联关系与关联字段不能为空',
     union_repeat: '当前数据集已被关联，请勿重复关联',
-    preview_result: '预览结果'
+    preview_result: '预览结果',
+    sql_ds_union_error: '直连模式下SQL数据集，不支持关联'
   },
   datasource: {
     datasource: '数据源',
@@ -1408,7 +1456,7 @@ export default {
     open_mode: '打开方式',
     new_window: '新开页面',
     now_window: '当前页面',
-    hyperLinks: '超链接',
+    hyperLinks: '目标地址',
     link_open_tips: '仪表板非编辑状态可打开链接',
     data_loading: '数据准备中...',
     export_loading: '导出中...',
@@ -1441,7 +1489,8 @@ export default {
     panel_view_result_tips: '选择仪表板会覆盖视图的结果展示数量，取值范围1~10000',
     timeout_refresh: '请求超时，稍后刷新...',
     mobile_layout: '移动端布局',
-    component_hidden: '隐藏的组件'
+    component_hidden: '隐藏的组件',
+    public_link_tips: '当前是公共链接模式，目标仪表板未设置公共链接，无法跳转'
   },
   plugin: {
     local_install: '本地安装',
@@ -1707,7 +1756,30 @@ export default {
     once_a_week: '每周一次',
     once_a_month: '每月一次',
     complex_repeat: '复杂重复',
-    pixel_tip: '可直接输入自定义分辨率或选择'
+    pixel_tip: '可直接输入自定义分辨率(例如:2560 * 1600)或选择'
 
+  },
+  dynamic_time: {
+    set_default: '设置默认值',
+    fix: '固定时间',
+    dynamic: '动态时间',
+    relative: '相对当前',
+    today: '今天',
+    yesterday: '昨天',
+    firstOfMonth: '月初',
+    custom: '自定义',
+    date: '日',
+    week: '周',
+    month: '月',
+    year: '年',
+    before: '前',
+    after: '后',
+    preview: '预览',
+    set: '设置',
+
+    cweek: '本周',
+    cmonth: '本月',
+    cquarter: '本季',
+    cyear: '本年'
   }
 }
