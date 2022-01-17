@@ -188,34 +188,8 @@ public class ExtractDataService {
                     saveSuccessLog(datasetTableTaskLog);
                     updateTableStatus(datasetTableId, datasetTable, JobStatus.Completed, execTime);
                     if(ops.equalsIgnoreCase("替换")){
-                        List<DatasetTableField> oldFileds = getDatasetTableFields(datasetTable.getId());
-                        List<DatasetTableField> toAdd = new ArrayList<>();
-                        List<DatasetTableField> toDelete = new ArrayList<>();
-                        for (DatasetTableField oldFiled : oldFileds) {
-                            boolean delete = true;
-                            for (DatasetTableField datasetTableField : datasetTableFields) {
-                                if(oldFiled.getDataeaseName().equalsIgnoreCase(datasetTableField.getDataeaseName()) && oldFiled.getDeExtractType().equals(datasetTableField.getDeExtractType())){
-                                    delete = false;
-                                }
-                            }
-                            if(delete){
-                                toDelete.add(oldFiled);
-                            }
-                        }
-
-                        for (DatasetTableField datasetTableField : datasetTableFields) {
-                            boolean add = true;
-                            for (DatasetTableField oldFiled : oldFileds) {
-                                if(oldFiled.getDataeaseName().equalsIgnoreCase(datasetTableField.getDataeaseName()) && oldFiled.getDeExtractType().equals(datasetTableField.getDeExtractType())){
-                                    add = false;
-                                }
-                            }
-                            if(add){
-                                toAdd.add(datasetTableField);
-                            }
-                        }
-                        toAdd.forEach(datasetTableField -> dataSetTableFieldsService.save(datasetTableField));
-                        toDelete.forEach(datasetTableField -> dataSetTableFieldsService.delete(datasetTableField.getId()));
+                        dataSetTableFieldsService.deleteByTableId(datasetTable.getId());
+                        datasetTableFields.forEach(datasetTableField -> dataSetTableFieldsService.save(datasetTableField));
                     }
                 } catch (Exception e) {
                     saveErrorLog(datasetTableId, null, e);
@@ -257,21 +231,6 @@ public class ExtractDataService {
         }
     }
 
-    private List<DatasetTableField> getDatasetTableFields(String datasetTableId){
-        List<DatasetTableField> datasetTableFields = dataSetTableFieldsService.list(DatasetTableField.builder().tableId(datasetTableId).build());
-        datasetTableFields = datasetTableFields.stream().filter(datasetTableField -> datasetTableField.getExtField() == 0).collect(Collectors.toList());
-        datasetTableFields.sort((o1, o2) -> {
-            if (o1.getColumnIndex() == null) {
-                return -1;
-            }
-            if (o2.getColumnIndex() == null) {
-                return 1;
-            }
-            return o1.getColumnIndex().compareTo(o2.getColumnIndex());
-        });
-        return datasetTableFields;
-    }
-
     public void extractData(String datasetTableId, String taskId, String type, JobExecutionContext context) {
         DatasetTable datasetTable = getDatasetTable(datasetTableId);
         if (datasetTable == null) {
@@ -305,7 +264,17 @@ public class ExtractDataService {
         } else {
             datasource.setType(datasetTable.getType());
         }
-        List<DatasetTableField> datasetTableFields = getDatasetTableFields(datasetTable.getId());
+        List<DatasetTableField> datasetTableFields = dataSetTableFieldsService.list(DatasetTableField.builder().tableId(datasetTable.getId()).build());
+        datasetTableFields = datasetTableFields.stream().filter(datasetTableField -> datasetTableField.getExtField() == 0).collect(Collectors.toList());
+        datasetTableFields.sort((o1, o2) -> {
+            if (o1.getColumnIndex() == null) {
+                return -1;
+            }
+            if (o2.getColumnIndex() == null) {
+                return 1;
+            }
+            return o1.getColumnIndex().compareTo(o2.getColumnIndex());
+        });
         String dorisTableColumnSql = createDorisTableColumnSql(datasetTableFields);
 
         boolean msg = false;
@@ -800,15 +769,6 @@ public class ExtractDataService {
                 inputStep = inputStep(transMeta, selectSQL);
                 udjcStep = udjc(datasetTableFields, DatasourceTypes.ck);
                 break;
-            case db2:
-                Db2Configuration db2Configuration = new Gson().fromJson(datasource.getConfiguration(), Db2Configuration.class);
-                dataMeta = new DatabaseMeta("db", "DB2", "Native", db2Configuration.getHost().trim(), db2Configuration.getDataBase().trim(), db2Configuration.getPort().toString(), db2Configuration.getUsername(), db2Configuration.getPassword());
-                dataMeta.setDatabaseType("DB2");
-                transMeta.addDatabase(dataMeta);
-                selectSQL = getSelectSQL(extractType, datasetTable, datasource, datasetTableFields, selectSQL);
-                inputStep = inputStep(transMeta, selectSQL);
-                udjcStep = udjc(datasetTableFields, DatasourceTypes.db2);
-                break;
             case excel:
                 inputStep = excelInputStep(datasetTable.getInfo(), datasetTableFields);
                 udjcStep = udjc(datasetTableFields, DatasourceTypes.excel);
@@ -1023,7 +983,7 @@ public class ExtractDataService {
         String tmp_code = code.replace("handleWraps", handleWraps).replace("handleBinaryType", handleBinaryTypeCode.toString());
 
         String Column_Fields;
-        if (datasourceType.equals(DatasourceTypes.oracle) || datasourceType.equals(DatasourceTypes.db2)) {
+        if (datasourceType.equals(DatasourceTypes.oracle)) {
             Column_Fields = datasetTableFields.stream().map(DatasetTableField::getOriginName).collect(Collectors.joining(","));
         } else {
             Column_Fields = datasetTableFields.stream().map(DatasetTableField::getDataeaseName).collect(Collectors.joining(","));

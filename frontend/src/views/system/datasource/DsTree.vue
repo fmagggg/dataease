@@ -140,26 +140,14 @@ export default {
       let typeData = []
       listDatasourceByType(datasource.type).then(res => {
         typeData = this.buildTree(res.data)
-        if(typeData.length === 0){
-          let index = this.tData.findIndex(item => {
-            if ( item.id === datasource.type) {
-              return true;
-            }
-          })
-          this.tData.splice(index,1)
-        }else {
-          let find = false;
-          for (let index = 0; index < this.tData.length; index++) {
-            if (typeData[0].id === this.tData[index].id) {
-              this.tData[index].children = typeData[0].children
-              find = true
-            }
-          }
-          if(!find){
-            this.tData.push(typeData[0])
+        for (let index = 0; index < this.tData.length; index++) {
+          if (typeData[0].id === this.tData[index].id) {
+            this.tData[index].children = typeData[0].children
           }
         }
       })
+
+
     },
     buildTree(array) {
       const types = {}
@@ -210,8 +198,6 @@ export default {
         return 'AWS Redshift'
       } else if (type === 'hive') {
         return 'Apache Hive'
-      } else if (type === 'db2') {
-        return 'Db2'
       }
     },
 

@@ -45,10 +45,6 @@ export default {
     resourceId: {
       type: String,
       default: null
-    },
-    user: {
-      type: String,
-      default: null
     }
   },
   data() {
@@ -92,7 +88,10 @@ export default {
       this.msg = null
       this.$refs.pwdForm.validate(valid => {
         if (!valid) return false
-        const param = this.user ? {password: this.form.password, resourceId: this.resourceId, user: this.user} : {password: this.form.password, resourceId: this.resourceId}
+        const param = {
+          password: this.form.password,
+          resourceId: this.resourceId
+        }
         validatePwd(param).then(res => {
           if (!res.data) {
             this.msg = this.$t('pblink.pwd_error')

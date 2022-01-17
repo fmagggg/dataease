@@ -8,10 +8,8 @@
       v-if="config.type==='custom'"
       :id="'component' + config.id"
       class="component-custom"
-      :style="getComponentStyleDefault(config.style)"
       :out-style="outStyle"
       :element="config"
-      :in-screen="true"
     />
     <component
       :is="config.component"
@@ -19,10 +17,9 @@
       ref="wrapperChild"
       :out-style="outStyle"
       :prop-value="config.propValue"
-      :style="getComponentStyleDefault(config.style)"
       :is-edit="false"
       :element="config"
-      :h="outItemHeight"
+      :h="itemHeight"
     />
   </div>
 </template>
@@ -30,12 +27,10 @@
 <script>
 import { mapState } from 'vuex'
 import MobileCheckBar from '@/components/canvas/components/Editor/MobileCheckBar'
-import { getStyle } from '@/components/canvas/utils/style'
-import DeOutWidget from '@/components/dataease/DeOutWidget'
 
 export default {
   name: 'ComponentWaitItem',
-  components: { DeOutWidget, MobileCheckBar },
+  components: { MobileCheckBar },
   props: {
     config: {
       type: Object,
@@ -53,9 +48,6 @@ export default {
     }
   },
   computed: {
-    outItemHeight() {
-      return this.itemHeight - (4 * this.componentGap)
-    },
     // 移动端编辑组件选择按钮显示
     mobileCheckBarShow() {
       // 显示条件：1.当前是移动端画布编辑状态
@@ -72,26 +64,23 @@ export default {
     },
     componentItemStyle() {
       return {
-        padding: '5px'
+        padding: '5px',
+        display: 'inline-block',
+        width: '33.3333%'
       }
     },
     ...mapState([
       'mobileLayoutStatus',
-      'componentData',
-      'componentGap'
+      'componentData'
     ])
   },
   methods: {
-    getComponentStyleDefault(style) {
-      return getStyle(style, ['top', 'left', 'width', 'height', 'rotate'])
-    }
   }
 }
 </script>
 
 <style scoped>
   .component-custom {
-    position: relative!important;
     outline: none;
     width: 100% !important;
     height: 100%;

@@ -15,6 +15,7 @@ export function ajaxGetData(id, data) {
     method: 'post',
     loading: true,
     hideMsg: true,
+    timeout: 30000,
     data
   })
 }
@@ -66,6 +67,7 @@ export function ajaxGetDataOnly(id, data) {
     method: 'post',
     loading: true,
     hideMsg: true,
+    timeout: 30000,
     data
   })
 }

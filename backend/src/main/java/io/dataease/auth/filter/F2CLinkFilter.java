@@ -9,6 +9,8 @@ import io.dataease.auth.util.LinkUtil;
 import io.dataease.base.domain.PanelLink;
 import io.dataease.commons.utils.LogUtil;
 import org.apache.shiro.web.filter.authc.AnonymousFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -16,7 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 
 public class F2CLinkFilter extends AnonymousFilter {
 
-    public static final String LINK_TOKEN_KEY = "LINK-PWD-TOKEN";
+    private static final String LINK_TOKEN_KEY = "LINK-PWD-TOKEN";
 
     @Override
     protected boolean onPreHandle(ServletRequest request, ServletResponse response, Object mappedValue) {
@@ -24,9 +26,9 @@ public class F2CLinkFilter extends AnonymousFilter {
             HttpServletRequest req = (HttpServletRequest) request;
             String linkToken = req.getHeader(LINK_TOKEN_KEY);
             DecodedJWT jwt = JWT.decode(linkToken);
-            String resourceId = jwt.getClaim("resourceId").asString();
-            Long userId = jwt.getClaim("userId").asLong();
-            PanelLink panelLink = LinkUtil.queryLink(resourceId, userId);
+            Claim resourceId = jwt.getClaim("resourceId");
+            String id = resourceId.asString();
+            PanelLink panelLink = LinkUtil.queryLink(id);
             if (ObjectUtil.isEmpty(panelLink)) return false;
             String pwd;
             if (!panelLink.getEnablePwd()) {
@@ -35,7 +37,7 @@ public class F2CLinkFilter extends AnonymousFilter {
             } else {
                 pwd = panelLink.getPwd();
             }
-            return JWTUtils.verifyLink(linkToken, resourceId, userId, pwd);
+            return JWTUtils.verifyLink(linkToken, id, pwd);
         } catch (Exception e) {
             LogUtil.error(e);
         }

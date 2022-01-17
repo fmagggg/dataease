@@ -1,42 +1,38 @@
 <template>
 
   <el-select
-    v-if="element.options!== null && element.options.attrs!==null && show"
+    v-if="options!== null && options.attrs!==null"
     ref="deSelect"
-    v-model="value"
+    v-model="options.value"
     :collapse-tags="showNumber"
-    :clearable="!element.options.attrs.multiple"
-    :multiple="element.options.attrs.multiple"
-    :placeholder="$t(element.options.attrs.placeholder)"
+    :clearable="!options.attrs.multiple"
+    :multiple="options.attrs.multiple"
+    :placeholder="$t(options.attrs.placeholder)"
     :popper-append-to-body="inScreen"
-    :size="size"
     @change="changeValue"
     @focus="setOptionWidth"
-    @blur="onBlur"
   >
     <el-option
-      v-for="item in datas"
-      :key="item[element.options.attrs.key]"
+      v-for="item in options.attrs.datas"
+      :key="item[options.attrs.key]"
       :style="{width:selectOptionWidth}"
-      :label="item[element.options.attrs.label]"
-      :value="item[element.options.attrs.value]"
+      :label="item[options.attrs.label]"
+      :value="item[options.attrs.value]"
     >
-      <span :title="item[element.options.attrs.label]" style="display:inline-block;width:100%;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;">{{ item[element.options.attrs.label] }}</span>
+      <span :title="item[options.attrs.label]" style="display:inline-block;width:100%;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;">{{ item[options.attrs.label] }}</span>
     </el-option>
   </el-select>
 
 </template>
 
 <script>
-import { multFieldValues, linkMultFieldValues} from '@/api/dataset/dataset'
-import bus from '@/utils/bus'
-import {getLinkToken, getToken} from "@/utils/auth";
+import { fieldValues } from '@/api/dataset/dataset'
 export default {
 
   props: {
     element: {
       type: Object,
-      default: () => {}
+      default: null
     },
     inDraw: {
       type: Boolean,
@@ -46,121 +42,58 @@ export default {
       type: Boolean,
       required: false,
       default: true
-    },
-    size: String
+    }
   },
   data() {
     return {
+      options: null,
       showNumber: false,
-      selectOptionWidth: 0,
-      show: true,
-      value: null,
-      datas: [],
-      onFocus: false
+      selectOptionWidth: 0
     }
   },
   computed: {
     operator() {
-      return this.element.options.attrs.multiple ? 'in' : 'eq'
-    },
-    defaultValueStr() {
-      if (!this.element || !this.element.options || !this.element.options.value) return ''
-      return this.element.options.value.toString()
-    },
-    viewIds() {
-      if (!this.element || !this.element.options || !this.element.options.attrs.viewIds) return ''
-      return this.element.options.attrs.viewIds.toString()
+      return this.options.attrs.multiple ? 'in' : 'eq'
     }
   },
-
   watch: {
-    'viewIds': function(value, old) {
-      if (typeof value === 'undefined' || value === old) return
-      this.setCondition()
-    },
-    'defaultValueStr': function(value, old) {
-      if (value === old) return
-      this.value = this.fillValueDerfault()
-      this.changeValue(value)
-    },
-    'element.options.attrs.fieldId': function(value, old) {
-      if (typeof value === 'undefined' || value === old) return
-      this.datas = []
-
-      let method =  multFieldValues
-      const token = this.$store.getters.token || getToken()
-      const linkToken = this.$store.getters.linkToken || getLinkToken()
-      if (!token && linkToken) {
-        method = linkMultFieldValues
+    'options.attrs.multiple': function(value) {
+      const sourceValue = this.options.value
+      const sourceValid = !!sourceValue && Object.keys(sourceValue).length > 0
+      if (value) {
+        !sourceValid && (this.options.value = [])
+        sourceValid && !Array.isArray(sourceValue) && (this.options.value = sourceValue.split(','))
+        !this.inDraw && (this.options.value = [])
+      } else {
+        !sourceValid && (this.options.value = null)
+        sourceValid && Array.isArray(sourceValue) && (this.options.value = sourceValue[0])
+        !this.inDraw && (this.options.value = null)
       }
-      this.element.options.attrs.fieldId &&
-      this.element.options.attrs.fieldId.length > 0 &&
-      method({fieldIds: this.element.options.attrs.fieldId.split(',')}).then(res => {
-        this.datas = this.optionDatas(res.data)
-      }) || (this.element.options.value = '')
-    },
-    'element.options.attrs.multiple': function(value, old) {
-      if (typeof old === 'undefined' || value === old) return
-      if (!this.inDraw) {
-        this.value = value ? [] : null
-        this.element.options.value = ''
-      }
-
-      this.show = false
-      this.$nextTick(() => {
-        this.show = true
+    }
+  },
+  created() {
+    this.options = this.element.options
+    if (this.options.attrs.fieldId) {
+      fieldValues(this.options.attrs.fieldId).then(res => {
+        this.options.attrs.datas = this.optionDatas(res.data)
       })
     }
 
-  },
-  created() {
-    this.initLoad()
+    // this.setCondition()
   },
   mounted() {
-    bus.$on('onScroll', () => {
-      if (this.onFocus) {
-        this.$refs.deSelect.blur()
-      }
-    })
+    // this.$nextTick(() => {
+    //   this.options && this.options.value && this.changeValue(this.options.value)
+    // })
+    this.options && this.options.value && Object.keys(this.options.value).length > 0 && this.changeValue(this.options.value)
   },
-
   methods: {
-    onBlur() {
-      this.onFocus = false
-    },
-    initLoad() {
-      this.value = this.fillValueDerfault()
-      this.datas = []
-      if (this.element.options.attrs.fieldId) {
-        let method =  multFieldValues
-        const token = this.$store.getters.token || getToken()
-        const linkToken = this.$store.getters.linkToken || getLinkToken()
-        if (!token && linkToken) {
-          method = linkMultFieldValues
-        }
-        method({fieldIds: this.element.options.attrs.fieldId.split(',')}).then(res => {
-          this.datas = this.optionDatas(res.data)
-        })
-      }
-      if (this.element.options.value) {
-        this.value = this.fillValueDerfault()
-        this.changeValue(this.value)
-      }
-    },
     changeValue(value) {
-      if (!this.inDraw) {
-        if (value === null) {
-          this.element.options.value = ''
-        } else {
-          this.element.options.value = Array.isArray(value) ? value.join() : value
-        }
-      }
       this.setCondition()
       this.styleChange()
       this.showNumber = false
-
       this.$nextTick(() => {
-        if (!this.element.options.attrs.multiple || !this.$refs.deSelect || !this.$refs.deSelect.$refs.tags) {
+        if (!this.$refs.deSelect.$refs.tags || !this.options.attrs.multiple) {
           return
         }
         const kids = this.$refs.deSelect.$refs.tags.children[0].children
@@ -175,25 +108,10 @@ export default {
     setCondition() {
       const param = {
         component: this.element,
-        value: this.formatFilterValue(),
+        value: Array.isArray(this.options.value) ? this.options.value : [this.options.value],
         operator: this.operator
       }
       this.inDraw && this.$store.commit('addViewFilter', param)
-    },
-    formatFilterValue() {
-      if (this.value === null) return []
-      if (Array.isArray(this.value)) return this.value
-      return this.value.split(',')
-    },
-    fillValueDerfault() {
-      const defaultV = this.element.options.value === null ? '' : this.element.options.value.toString()
-      if (this.element.options.attrs.multiple) {
-        if (defaultV === null || typeof defaultV === 'undefined' || defaultV === '' || defaultV === '[object Object]') return []
-        return defaultV.split(',')
-      } else {
-        if (defaultV === null || typeof defaultV === 'undefined' || defaultV === '' || defaultV === '[object Object]') return null
-        return defaultV.split(',')[0]
-      }
     },
     styleChange() {
       this.$store.commit('recordStyleChange')
@@ -208,8 +126,7 @@ export default {
       })
     },
     setOptionWidth(event) {
-      this.onFocus = true
-      // 下拉框弹出时，设置弹框的宽度
+    // 下拉框弹出时，设置弹框的宽度
       this.$nextTick(() => {
         this.selectOptionWidth = event.srcElement.offsetWidth + 'px'
       })

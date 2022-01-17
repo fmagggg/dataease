@@ -84,20 +84,12 @@ export default {
     ])
   },
   created() {
-    this.initOption()
-  },
-  watch: {
-    h(newVal, oldVla) {
-      this.initOption()
-    }
+    this.pOption = this.element.videoLinks[this.element.videoLinks.videoType]
+    this.pOption.height = this.h - (this.curGap * 2)
   },
   mounted() {
   },
   methods: {
-    initOption() {
-      this.pOption = this.element.videoLinks[this.element.videoLinks.videoType]
-      this.pOption.height = this.h - (this.curGap * 2)
-    },
     // listen event
     onPlayerPlay(player) {
       // console.log('player play!', player)

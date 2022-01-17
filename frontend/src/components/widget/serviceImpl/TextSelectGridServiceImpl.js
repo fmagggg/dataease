@@ -16,9 +16,7 @@ const dialogPanel = {
       datas: [],
       key: 'id',
       label: 'text',
-      value: 'id',
-      fieldId: '',
-      dragItems: []
+      value: 'id'
     },
     value: ''
   },

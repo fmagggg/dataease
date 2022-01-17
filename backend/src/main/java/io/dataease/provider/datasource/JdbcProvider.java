@@ -73,15 +73,15 @@ public class JdbcProvider extends DatasourceProvider {
 
             list = fetchResult(rs);
 
-            if (dsr.isPageable() && (dsr.getDatasource().getType().equalsIgnoreCase(DatasourceTypes.sqlServer.name()) || dsr.getDatasource().getType().equalsIgnoreCase(DatasourceTypes.db2.name()))) {
+            if (dsr.isPageable() && dsr.getDatasource().getType().equalsIgnoreCase(DatasourceTypes.sqlServer.name())) {
                 Integer realSize = dsr.getPage() * dsr.getPageSize() < list.size() ? dsr.getPage() * dsr.getPageSize() : list.size();
                 list = list.subList((dsr.getPage() - 1) * dsr.getPageSize(), realSize);
             }
 
         } catch (SQLException e) {
-            DataEaseException.throwException(Translator.get("i18n_sql_error") + e.getMessage());
+            DataEaseException.throwException(e);
         } catch (Exception e) {
-            DataEaseException.throwException(Translator.get("i18n_datasource_connect_error") + e.getMessage());
+            DataEaseException.throwException(e);
         }
         return list;
     }
@@ -137,10 +137,6 @@ public class JdbcProvider extends DatasourceProvider {
 
     @Override
     public List<TableFiled> getTableFileds(DatasourceRequest datasourceRequest) throws Exception {
-        if(datasourceRequest.getDatasource().getType().equalsIgnoreCase("mongo")){
-            datasourceRequest.setQuery("select * from " + datasourceRequest.getTable());
-            return fetchResultField(datasourceRequest);
-        }
         List<TableFiled> list = new LinkedList<>();
         try (Connection connection = getConnectionFromPool(datasourceRequest)) {
             DatabaseMetaData databaseMetaData = connection.getMetaData();
@@ -249,10 +245,10 @@ public class JdbcProvider extends DatasourceProvider {
         List<String[]> dataList;
         List<TableFiled> fieldList;
         try (Connection connection = getConnectionFromPool(datasourceRequest); Statement stat = connection.createStatement(); ResultSet rs = stat.executeQuery(rebuildSqlWithFragment(datasourceRequest.getQuery()))) {
-            fieldList = fetchResultField(rs, datasourceRequest);
-            result.put("fieldList", fieldList);
             dataList = fetchResult(rs);
+            fieldList = fetchResultField(rs, datasourceRequest);
             result.put("dataList", dataList);
+            result.put("fieldList", fieldList);
             return result;
         } catch (SQLException e) {
             DataEaseException.throwException(e);
@@ -455,13 +451,6 @@ public class JdbcProvider extends DatasourceProvider {
                 driver = hiveConfiguration.getDriver();
                 jdbcurl = hiveConfiguration.getJdbc();
                 break;
-            case db2:
-                Db2Configuration db2Configuration = new Gson().fromJson(datasourceRequest.getDatasource().getConfiguration(), Db2Configuration.class);
-                username = db2Configuration.getUsername();
-                password = db2Configuration.getPassword();
-                driver = db2Configuration.getDriver();
-                jdbcurl = db2Configuration.getJdbc();
-                break;
             default:
                 break;
         }
@@ -554,13 +543,6 @@ public class JdbcProvider extends DatasourceProvider {
                 dataSource.setDriverClassName(hiveConfiguration.getDriver());
                 dataSource.setUrl(hiveConfiguration.getJdbc());
                 jdbcConfiguration = hiveConfiguration;
-                break;
-            case db2:
-                Db2Configuration db2Configuration = new Gson().fromJson(datasourceRequest.getDatasource().getConfiguration(), Db2Configuration.class);
-                dataSource.setPassword(db2Configuration.getPassword());
-                dataSource.setDriverClassName(db2Configuration.getDriver());
-                dataSource.setUrl(db2Configuration.getJdbc());
-                jdbcConfiguration = db2Configuration;
             default:
                 break;
         }
@@ -586,7 +568,7 @@ public class JdbcProvider extends DatasourceProvider {
                 if (StringUtils.isEmpty(sqlServerConfiguration.getSchema())) {
                     throw new Exception(Translator.get("i18n_schema_is_empty"));
                 }
-                return "SELECT TABLE_NAME FROM \"DATABASE\".INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = 'DS_SCHEMA' ;"
+                return "SELECT TABLE_NAME FROM DATABASE.INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = 'DS_SCHEMA' ;"
                         .replace("DATABASE", sqlServerConfiguration.getDataBase())
                         .replace("DS_SCHEMA", sqlServerConfiguration.getSchema());
             case oracle:
@@ -610,12 +592,6 @@ public class JdbcProvider extends DatasourceProvider {
                     throw new Exception(Translator.get("i18n_schema_is_empty"));
                 }
                 return "SELECT tablename FROM  pg_tables WHERE  schemaname='SCHEMA' ;".replace("SCHEMA", redshiftConfigration.getSchema());
-            case db2:
-                Db2Configuration db2Configuration = new Gson().fromJson(datasourceRequest.getDatasource().getConfiguration(), Db2Configuration.class);
-                if (StringUtils.isEmpty(db2Configuration.getSchema())) {
-                    throw new Exception(Translator.get("i18n_schema_is_empty"));
-                }
-                return "select TABNAME from syscat.tables  WHERE TABSCHEMA ='DE_SCHEMA' AND \"TYPE\" = 'T';".replace("DE_SCHEMA", db2Configuration.getSchema());
             default:
                 return "show tables;";
         }
@@ -656,14 +632,6 @@ public class JdbcProvider extends DatasourceProvider {
                     throw new Exception(Translator.get("i18n_schema_is_empty"));
                 }
                 return "SELECT viewname FROM  pg_views WHERE schemaname='SCHEMA' ;".replace("SCHEMA", redshiftConfigration.getSchema());
-
-            case db2:
-                Db2Configuration db2Configuration = new Gson().fromJson(datasourceRequest.getDatasource().getConfiguration(), Db2Configuration.class);
-                if (StringUtils.isEmpty(db2Configuration.getSchema())) {
-                    throw new Exception(Translator.get("i18n_schema_is_empty"));
-                }
-                return "select TABNAME from syscat.tables  WHERE TABSCHEMA ='DE_SCHEMA' AND \"TYPE\" = 'V';".replace("DE_SCHEMA", db2Configuration.getSchema());
-
             default:
                 return null;
         }
@@ -671,14 +639,11 @@ public class JdbcProvider extends DatasourceProvider {
 
     private String getSchemaSql(DatasourceRequest datasourceRequest) {
         DatasourceTypes datasourceType = DatasourceTypes.valueOf(datasourceRequest.getDatasource().getType());
-        Db2Configuration db2Configuration = new Gson().fromJson(datasourceRequest.getDatasource().getConfiguration(), Db2Configuration.class);
         switch (datasourceType) {
             case oracle:
                 return "select * from all_users";
             case sqlServer:
                 return "select name from sys.schemas;";
-            case db2:
-                return "select SCHEMANAME from syscat.SCHEMATA   WHERE \"DEFINER\" ='USER';".replace("USER", db2Configuration.getUsername().toUpperCase()) ;
             case pg:
                 return "SELECT nspname FROM pg_namespace;";
             case redshift:

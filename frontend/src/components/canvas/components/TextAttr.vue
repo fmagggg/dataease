@@ -51,7 +51,7 @@
       </el-tooltip>
 
       <div v-if="attrShow('fontSize')" style="width: 70px;float: left;margin-top: 2px;margin-left: 2px;">
-        <el-input v-model="initFontSize" type="number" size="mini" :min="miniFontSize" :max="maxFontSize" @change="styleChange" />
+        <el-input v-model="styleInfo.fontSize" type="number" size="mini" min="12" max="128" @change="styleChange" />
       </div>
 
       <el-tooltip v-if="attrShow('fontWeight')" :content="$t('panel.fontWeight')">
@@ -150,7 +150,6 @@ import Hyperlinks from '@/components/canvas/components/Editor/Hyperlinks'
 import VideoLinks from '@/components/canvas/components/Editor/VideoLinks'
 import DateFormat from '@/components/canvas/components/Editor/DateFormat'
 import { COLOR_PANEL } from '@/views/chart/chart/chart'
-import { chartTransStr2Object } from '@/views/panel/panel'
 
 export default {
   components: { Hyperlinks, DateFormat, VideoLinks },
@@ -169,10 +168,6 @@ export default {
       predefineColors: COLOR_PANEL,
       showMain: true,
       innerOpacity: 0,
-      mainWidthOffset: 600,
-      initFontSize: 12,
-      miniFontSize: 12,
-      maxFontSize: 128,
       textAlignOptions: [
         {
           icon: 'iconfont icon-juzuo',
@@ -228,8 +223,7 @@ export default {
         'borderWidth',
         'borderRadius',
         'opacity',
-        'borderColor',
-        'hyperlinks'
+        'borderColor'
       ],
       // 过滤组件显示的属性
       'custom': [
@@ -289,6 +283,7 @@ export default {
       ]
     }
   },
+
   computed: {
     boardDivColor() {
       const style = {
@@ -323,7 +318,11 @@ export default {
       return this.$store.state.curComponent.style
     },
     canvasWidth() {
-      return this.canvasStyleData.width * this.curCanvasScale.scalePointWidth
+      let scaleWidth = 1
+      if (this.canvasStyleData.selfAdaption) {
+        scaleWidth = this.curCanvasScale.scaleWidth / 100
+      }
+      return this.canvasStyleData.width * scaleWidth
     },
     ...mapState([
       'curComponent',
@@ -333,28 +332,9 @@ export default {
 
   },
   watch: {
-    styleInfo: {
-      handler(newVal, oldVla) {
-        if (newVal.fontSize) {
-          this.initFontSize = newVal.fontSize
-        }
-      },
-      deep: true
-    },
     innerOpacity: {
       handler(oldVal, newVal) {
         this.styleInfo['opacity'] = this.innerOpacity / 100
-      }
-    },
-    initFontSize: {
-      handler(newVal) {
-        if (newVal < this.miniFontSize) {
-          this.styleInfo.fontSize = this.miniFontSize
-        } else if (newVal > this.maxFontSize) {
-          this.styleInfo.fontSize = this.maxFontSize
-        } else {
-          this.styleInfo.fontSize = newVal
-        }
       }
     },
     curComponent: {
@@ -368,9 +348,6 @@ export default {
   },
   mounted() {
     this.init()
-    if (this.attrShow('fontSize')) {
-      this.initFontSize = this.styleInfo.fontSize
-    }
   },
 
   methods: {
@@ -378,12 +355,11 @@ export default {
       if (this.styleInfo['opacity']) {
         this.innerOpacity = this.styleInfo['opacity'] * 100
       }
+      this.mainWidthOffset = document.getElementById('main-attr').offsetWidth - 50
       if (this.curComponent.type === 'v-text') {
         this.mainWidthOffset = 600
       } else if (this.curComponent.type === 'de-show-date') {
         this.mainWidthOffset = 600
-      } else {
-        this.mainWidthOffset = document.getElementById('main-attr').offsetWidth - 50
       }
       // console.log('mainWidthOffset:' + this.mainWidthOffset)
     },
@@ -402,9 +378,14 @@ export default {
     },
     getPositionX(x) {
       let ps = 0
-      ps = (x * this.curCanvasScale.scalePointWidth) + 60
+      if (this.canvasStyleData.selfAdaption) {
+        ps = (x * this.curCanvasScale.scaleWidth / 100) + 60
+      } else {
+        ps = x + 60
+      }
       // 防止toolbar超出边界
       const xGap = ps + this.mainWidthOffset - this.canvasWidth
+      // console.log('canvasWidth:' + this.canvasWidth + ';xGap:' + xGap)
       if (xGap > 0) {
         return ps - xGap
       } else {
@@ -412,7 +393,11 @@ export default {
       }
     },
     getPositionY(y) {
-      return y * this.curCanvasScale.scalePointHeight
+      if (this.canvasStyleData.selfAdaption) {
+        return y * this.curCanvasScale.scaleHeight / 100
+      } else {
+        return y
+      }
     },
     styleChange() {
       this.$store.commit('recordStyleChange')

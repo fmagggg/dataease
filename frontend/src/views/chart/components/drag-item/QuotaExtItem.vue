@@ -13,9 +13,7 @@
         <svg-icon v-if="item.sort === 'desc'" icon-class="sort-desc" class-name="field-icon-sort" />
       </span>
       <span class="item-span-style" :title="item.name">{{ item.name }}</span>
-      <span v-if="chart.type !== 'table-info' && item.summary" class="summary-span">
-        {{ $t('chart.' + item.summary) }}<span v-if="item.compareCalc && item.compareCalc.type && item.compareCalc.type !== '' && item.compareCalc.type !== 'none'">-{{ $t('chart.' + item.compareCalc.type) }}</span>
-      </span>
+      <span v-if="chart.type !== 'table-info' && item.summary" class="summary-span">{{ $t('chart.'+item.summary) }}</span>
     </el-tag>
     <el-dropdown v-else trigger="click" size="mini" @command="clickItem">
       <span class="el-dropdown-link">
@@ -32,9 +30,7 @@
             <svg-icon v-if="item.sort === 'desc'" icon-class="sort-desc" class-name="field-icon-sort" />
           </span>
           <span class="item-span-style" :title="item.name">{{ item.name }}</span>
-          <span v-if="chart.type !== 'table-info' && item.summary" class="summary-span">
-            {{ $t('chart.' + item.summary) }}<span v-if="item.compareCalc && item.compareCalc.type && item.compareCalc.type !== '' && item.compareCalc.type !== 'none'">-{{ $t('chart.' + item.compareCalc.type) }}</span>
-          </span>
+          <span v-if="chart.type !== 'table-info' && item.summary" class="summary-span">{{ $t('chart.'+item.summary) }}</span>
           <i class="el-icon-arrow-down el-icon--right" style="position: absolute;top: 6px;right: 10px;" />
         </el-tag>
         <el-dropdown-menu slot="dropdown">
@@ -91,25 +87,6 @@
           <!--              </el-dropdown-menu>-->
           <!--            </el-dropdown>-->
           <!--          </el-dropdown-item>-->
-
-          <!--同比/环比-->
-          <el-dropdown-item v-show="chart.type !== 'table-info'">
-            <el-dropdown placement="right-start" size="mini" style="width: 100%" @command="quickCalc">
-              <span class="el-dropdown-link inner-dropdown-menu">
-                <span>
-                  <i class="el-icon-s-grid" />
-                  <span>{{ $t('chart.quick_calc') }}</span>
-                  <span class="summary-span-item">({{ !item.compareCalc ? $t('chart.none') : $t('chart.' + item.compareCalc.type) }})</span>
-                </span>
-                <i class="el-icon-arrow-right el-icon--right" />
-              </span>
-              <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item :command="beforeQuickCalc('none')">{{ $t('chart.none') }}</el-dropdown-item>
-                <el-dropdown-item :disabled="disableEditCompare" :command="beforeQuickCalc('setting')">{{ $t('chart.yoy_label') }}...</el-dropdown-item>
-              </el-dropdown-menu>
-            </el-dropdown>
-          </el-dropdown-item>
-
           <el-dropdown-item :divided="chart.type !== 'table-info'">
             <el-dropdown placement="right-start" size="mini" style="width: 100%" @command="sort">
               <span class="el-dropdown-link inner-dropdown-menu">
@@ -143,8 +120,6 @@
 </template>
 
 <script>
-import { compareItem } from '@/views/chart/chart/compare'
-
 export default {
   name: 'QuotaExtItem',
   props: {
@@ -167,40 +142,12 @@ export default {
   },
   data() {
     return {
-      compareItem: compareItem,
-      disableEditCompare: false
-    }
-  },
-  watch: {
-    'chart.xaxis': function() {
-      this.isEnableCompare()
-    },
-    'chart.extStack': function() {
-      this.isEnableCompare()
     }
   },
   mounted() {
-    this.init()
-    this.isEnableCompare()
+
   },
   methods: {
-    init() {
-      if (!this.item.compareCalc) {
-        this.item.compareCalc = JSON.parse(JSON.stringify(this.compareItem))
-      }
-    },
-    isEnableCompare() {
-      const xAxis = JSON.parse(this.chart.xaxis)
-      const t1 = xAxis.filter(ele => {
-        return ele.deType === 1
-      })
-      // 暂时只支持类别轴/维度的时间类型字段，且视图中有且只有一个时间字段
-      if (t1.length === 1 && this.chart.type !== 'text' && this.chart.type !== 'gauge' && this.chart.type !== 'liquid') {
-        this.disableEditCompare = false
-      } else {
-        this.disableEditCompare = true
-      }
-    },
     clickItem(param) {
       if (!param) {
         return
@@ -248,17 +195,7 @@ export default {
     },
 
     quickCalc(param) {
-      switch (param.type) {
-        case 'none':
-          this.item.compareCalc.type = 'none'
-          this.$emit('onQuotaItemChange', this.item)
-          break
-        case 'setting':
-          this.editCompare()
-          break
-        default:
-          break
-      }
+
     },
     beforeQuickCalc(type) {
       return {
@@ -290,12 +227,6 @@ export default {
       this.item.index = this.index
       this.item.filterType = 'quotaExt'
       this.$emit('editItemFilter', this.item)
-    },
-
-    editCompare() {
-      this.item.index = this.index
-      this.item.calcType = 'quotaExt'
-      this.$emit('editItemCompare', this.item)
     }
   }
 }
@@ -333,7 +264,7 @@ export default {
     margin-left: 4px;
     color: #878d9f;
     position: absolute;
-    right: 25px;
+    right: 30px;
   }
 
   .inner-dropdown-menu{
@@ -345,7 +276,7 @@ export default {
 
   .item-span-style{
     display: inline-block;
-    width: 50px;
+    width: 70px;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;

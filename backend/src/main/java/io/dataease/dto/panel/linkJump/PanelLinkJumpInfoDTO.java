@@ -19,9 +19,6 @@ public class PanelLinkJumpInfoDTO extends PanelLinkJumpInfo {
 
     private String sourceJumpInfo;
 
-    //存在公共链接的目标仪表板
-    private String publicJumpId;
-
     private List<PanelLinkJumpTargetViewInfo> targetViewInfoList=new ArrayList<>();// linkType = inner 时使用
 
 

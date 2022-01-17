@@ -26,6 +26,4 @@ public class SQLObj {
     private String whereField;
     private String whereAlias;
     private String whereTermAndValue;
-
-    private String limitFiled;
 }

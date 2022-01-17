@@ -1,7 +1,6 @@
 <template>
   <el-row v-loading="loading" style="height: 100%;overflow-y: hidden;width: 100%;">
     <el-row style="height: 40px;" class="padding-lr">
-      <span v-show="false">{{ refreshPage }}</span>
       <span class="title-text" style="line-height: 40px;">{{ view.name }}</span>
       <el-popover
         placement="right-start"
@@ -23,7 +22,7 @@
       </span>
     </el-row>
     <el-row class="view-panel">
-      <el-tabs :stretch="true" class="tab-header">
+      <el-tabs type="card" :stretch="true" class="tab-header">
         <el-tab-pane :label="$t('chart.chart_data')" class="padding-tab" style="width: 360px">
           <el-row class="view-panel">
             <el-col class="theme-border-class" style="width: 180px;border-right: 1px solid #E6E6E6;">
@@ -117,7 +116,6 @@
 
             <el-col
               style="height: 100%;width: 180px;border-right: 1px solid #E6E6E6;"
-              class="theme-border-class"
             >
               <div style="height: 60px;overflow:auto" class="padding-lr theme-border-class">
                 <span class="theme-border-class">
@@ -231,9 +229,6 @@
                         :options="places"
                         :placeholder="$t('chart.select_map_range')"
                         :normalizer="normalizer"
-                        :no-children-text="$t('commons.treeselect.no_children_text')"
-                        :no-options-text="$t('commons.treeselect.no_options_text')"
-                        :no-results-text="$t('commons.treeselect.no_results_text')"
                         @input="calcData"
                         @deselect="calcData"
                       />
@@ -335,7 +330,6 @@
                           @onQuotaItemRemove="quotaItemRemove"
                           @editItemFilter="showQuotaEditFilter"
                           @onNameEdit="showRename"
-                          @editItemCompare="showQuotaEditCompare"
                         />
                       </transition-group>
                     </draggable>
@@ -371,7 +365,6 @@
                           @onQuotaItemRemove="quotaItemRemove"
                           @editItemFilter="showQuotaEditFilter"
                           @onNameEdit="showRename"
-                          @editItemCompare="showQuotaEditCompare"
                         />
                       </transition-group>
                     </draggable>
@@ -809,7 +802,6 @@
 
     <!--指标过滤器-->
     <el-dialog
-      v-if="quotaFilterEdit"
       v-dialogDrag
       :title="$t('chart.add_filter')"
       :visible="quotaFilterEdit"
@@ -824,7 +816,6 @@
       </div>
     </el-dialog>
     <el-dialog
-      v-if="dimensionFilterEdit"
       v-dialogDrag
       :title="$t('chart.add_filter')"
       :visible="dimensionFilterEdit"
@@ -839,7 +830,6 @@
       </div>
     </el-dialog>
     <el-dialog
-      v-if="resultFilterEdit"
       v-dialogDrag
       :title="$t('chart.add_filter')"
       :visible="resultFilterEdit"
@@ -868,8 +858,8 @@
       <p style="margin-top: 10px;color:#F56C6C;font-size: 12px;">{{ $t('chart.change_ds_tip') }}</p>
       <div slot="footer" class="dialog-footer">
         <el-button size="mini" @click="closeChangeChart">{{ $t('chart.cancel') }}</el-button>
-        <el-button type="primary" size="mini" :disabled="!changeTable || !changeTable.id" @click="changeChart">
-          {{ $t('chart.confirm') }}
+        <el-button type="primary" size="mini" :disabled="!changeTable || !changeTable.id" @click="changeChart">{{
+          $t('chart.confirm') }}
         </el-button>
       </div>
     </el-dialog>
@@ -891,27 +881,11 @@
         <el-button size="mini" style="float: right;" @click="closeEditDsField">{{ $t('chart.close') }}</el-button>
       </div>
     </el-dialog>
-
-    <el-dialog
-      v-if="showEditQuotaCompare"
-      v-dialogDrag
-      :title="$t('chart.yoy_setting')"
-      :visible="showEditQuotaCompare"
-      :show-close="false"
-      width="600px"
-      class="dialog-css"
-    >
-      <compare-edit :compare-item="quotaItemCompare" :chart="chart" />
-      <div slot="footer" class="dialog-footer">
-        <el-button size="mini" @click="closeQuotaEditCompare">{{ $t('chart.cancel') }}</el-button>
-        <el-button type="primary" size="mini" @click="saveQuotaEditCompare">{{ $t('chart.confirm') }}</el-button>
-      </div>
-    </el-dialog>
   </el-row>
 </template>
 
 <script>
-import { ajaxGetDataOnly, post } from '@/api/chart/chart'
+import { ajaxGetData, ajaxGetDataOnly, post } from '@/api/chart/chart'
 import draggable from 'vuedraggable'
 import DimensionItem from '../components/drag-item/DimensionItem'
 import QuotaItem from '../components/drag-item/QuotaItem'
@@ -930,12 +904,12 @@ import {
   DEFAULT_LABEL,
   DEFAULT_LEGEND_STYLE,
   DEFAULT_SIZE,
-  DEFAULT_SPLIT,
   DEFAULT_TITLE_STYLE,
   DEFAULT_TOOLTIP,
   DEFAULT_XAXIS_STYLE,
-  DEFAULT_YAXIS_EXT_STYLE,
-  DEFAULT_YAXIS_STYLE
+  DEFAULT_YAXIS_STYLE,
+  DEFAULT_SPLIT,
+  DEFAULT_YAXIS_EXT_STYLE
 } from '../chart/chart'
 import ColorSelector from '../components/shape-attr/ColorSelector'
 import SizeSelector from '../components/shape-attr/SizeSelector'
@@ -968,13 +942,10 @@ import YAxisSelectorAntV from '@/views/chart/components/component-style/YAxisSel
 import YAxisExtSelectorAntV from '@/views/chart/components/component-style/YAxisExtSelectorAntV'
 import SizeSelectorAntV from '@/views/chart/components/shape-attr/SizeSelectorAntV'
 import SplitSelectorAntV from '@/views/chart/components/component-style/SplitSelectorAntV'
-import CompareEdit from '@/views/chart/components/compare/CompareEdit'
-import { compareItem } from '@/views/chart/chart/compare'
 
 export default {
   name: 'ChartEdit',
   components: {
-    CompareEdit,
     SplitSelectorAntV,
     SizeSelectorAntV,
     YAxisExtSelectorAntV,
@@ -1100,16 +1071,15 @@ export default {
         { name: 'ECharts', value: 'echarts' }
       ],
       drill: false,
-      hasEdit: false,
-      quotaItemCompare: {},
-      showEditQuotaCompare: false
+      hasEdit: false
     }
   },
   computed: {
-    refreshPage: function() {
-      this.getChart(this.param.id)
-      return this.$store.getters.chartTable
-    },
+    // vId() {
+    //   // console.log(this.$store.state.chart.viewId);
+    //   this.getData(this.$store.state.chart.viewId)
+    //   return this.$store.state.chart.viewId
+    // }
     chartType() {
       return this.chart.type
     }
@@ -1247,9 +1217,6 @@ export default {
         if (!ele.filter) {
           ele.filter = []
         }
-        if (!ele.compareCalc) {
-          ele.compareCalc = compareItem
-        }
       })
       if (view.type === 'chart-mix') {
         view.yaxisExt.forEach(function(ele) {
@@ -1268,9 +1235,6 @@ export default {
           }
           if (!ele.filter) {
             ele.filter = []
-          }
-          if (!ele.compareCalc) {
-            ele.compareCalc = compareItem
           }
         })
       }
@@ -1420,7 +1384,6 @@ export default {
       const view = this.buildParam(true, 'chart', false, false)
       if (!view) return
       post('/chart/view/save', view).then(response => {
-        this.getChart(response.data.id)
         this.hasEdit = false
         this.refreshGroup(view)
         this.closeChangeChart()
@@ -1467,11 +1430,11 @@ export default {
         }).catch(err => {
           this.resetView()
           this.resetDrill()
+          this.httpRequest.status = err.response.data.success
+          this.httpRequest.msg = err.response.data.message
           this.$nextTick(() => {
             this.getChart(id)
           })
-          this.httpRequest.status = err.response.data.success
-          this.httpRequest.msg = err.response.data.message
           return true
         })
       } else {
@@ -1526,6 +1489,12 @@ export default {
     },
 
     quotaItemChange(item) {
+      // 更新item
+      // this.view.yaxis.forEach(function(ele) {
+      //   if (ele.id === item.id) {
+      //     ele.summary = item.summary
+      //   }
+      // })
       this.calcData(true)
     },
 
@@ -1620,9 +1589,6 @@ export default {
 
     showQuotaEditFilter(item) {
       this.quotaItem = JSON.parse(JSON.stringify(item))
-      if (!this.quotaItem.logic) {
-        this.quotaItem.logic = 'and'
-      }
       this.quotaFilterEdit = true
     },
     closeQuotaFilter() {
@@ -1642,10 +1608,8 @@ export default {
       }
       if (this.quotaItem.filterType === 'quota') {
         this.view.yaxis[this.quotaItem.index].filter = this.quotaItem.filter
-        this.view.yaxis[this.quotaItem.index].logic = this.quotaItem.logic
       } else if (this.quotaItem.filterType === 'quotaExt') {
         this.view.yaxisExt[this.quotaItem.index].filter = this.quotaItem.filter
-        this.view.yaxisExt[this.quotaItem.index].logic = this.quotaItem.logic
       }
       this.calcData(true)
       this.closeQuotaFilter()
@@ -1658,42 +1622,24 @@ export default {
     showEditFilter(item) {
       this.filterItem = JSON.parse(JSON.stringify(item))
       this.chartForFilter = JSON.parse(JSON.stringify(this.view))
-      if (!this.filterItem.logic) {
-        this.filterItem.logic = 'and'
-      }
-      if (!this.filterItem.filterType) {
-        this.filterItem.filterType = 'logic'
-      }
-      if (!this.filterItem.enumCheckField) {
-        this.filterItem.enumCheckField = []
-      }
       this.resultFilterEdit = true
     },
     closeResultFilter() {
       this.resultFilterEdit = false
     },
     saveResultFilter() {
-      if (((this.filterItem.deType === 0 || this.filterItem.deType === 5) && this.filterItem.filterType !== 'enum') ||
-          this.filterItem.deType === 1 ||
-          this.filterItem.deType === 2 ||
-          this.filterItem.deType === 3) {
-        for (let i = 0; i < this.filterItem.filter.length; i++) {
-          const f = this.filterItem.filter[i]
-          if (!f.term.includes('null') && !f.term.includes('empty') && (!f.value || f.value === '')) {
-            this.$message({
-              message: this.$t('chart.filter_value_can_null'),
-              type: 'error',
-              showClose: true
-            })
-            return
-          }
+      for (let i = 0; i < this.filterItem.filter.length; i++) {
+        const f = this.filterItem.filter[i]
+        if (!f.term.includes('null') && !f.term.includes('empty') && (!f.value || f.value === '')) {
+          this.$message({
+            message: this.$t('chart.filter_value_can_null'),
+            type: 'error',
+            showClose: true
+          })
+          return
         }
       }
-
       this.view.customFilter[this.filterItem.index].filter = this.filterItem.filter
-      this.view.customFilter[this.filterItem.index].logic = this.filterItem.logic
-      this.view.customFilter[this.filterItem.index].filterType = this.filterItem.filterType
-      this.view.customFilter[this.filterItem.index].enumCheckField = this.filterItem.enumCheckField
       this.calcData(true)
       this.closeResultFilter()
     },
@@ -1725,24 +1671,6 @@ export default {
     },
     resetRename() {
       // this.itemForm = {}
-    },
-
-    showQuotaEditCompare(item) {
-      this.quotaItemCompare = JSON.parse(JSON.stringify(item))
-      this.showEditQuotaCompare = true
-    },
-    closeQuotaEditCompare() {
-      this.showEditQuotaCompare = false
-    },
-    saveQuotaEditCompare() {
-      // 更新指标
-      if (this.quotaItemCompare.calcType === 'quota') {
-        this.view.yaxis[this.quotaItemCompare.index].compareCalc = this.quotaItemCompare.compareCalc
-      } else if (this.quotaItemCompare.calcType === 'quotaExt') {
-        this.view.yaxisExt[this.quotaItemCompare.index].compareCalc = this.quotaItemCompare.compareCalc
-      }
-      this.calcData(true)
-      this.closeQuotaEditCompare()
     },
 
     showTab() {
@@ -2163,10 +2091,12 @@ export default {
   }
 
   .blackTheme .item-quota {
+
     border: solid 1px;
     border-color: var(--TableBorderColor);
     color: var(--TextPrimary);
     background-color: var(--MainBG);
+
   }
 
   .item-quota + .item-quota {
@@ -2192,18 +2122,23 @@ export default {
     font-size: 12px;
   }
 
-  .tab-header > > > .el-tabs__header {
-    border-top: solid 1px #eee;
-    border-right: solid 1px #eee;
-  }
-
   .tab-header > > > .el-tabs__item {
     font-size: 12px;
-    padding: 0 60px!important;
+    background-color: #E8EAED;
   }
 
   .blackTheme .tab-header > > > .el-tabs__item {
     background-color: var(--MainBG);
+  }
+
+  .tab-header > > > .is-active {
+    background-color: #f7f8fa;
+    border-bottom-color: #f7f8fa !important;
+  }
+
+  .blackTheme .tab-header > > > .is-active {
+    background-color: var(--ContentBG);
+    border-bottom-color: var(--ContentBG) !important;
   }
 
   .tab-header > > > .el-tabs__nav-scroll {
@@ -2242,6 +2177,7 @@ export default {
   }
 
   .blackTheme .attr-style {
+    border-color: var(--TableBorderColor) !important;
     color: var(--TextPrimary);
   }
 
@@ -2367,6 +2303,7 @@ export default {
   }
 
   .blackTheme .theme-border-class {
+    border-color: var(--TableBorderColor) !important;
     color: var(--TextPrimary) !important;
     background-color: var(--ContentBG);
   }

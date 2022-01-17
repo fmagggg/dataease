@@ -2,9 +2,8 @@
   <el-quarter
     v-if="options!== null && options.attrs!==null"
     v-model="options.value"
+
     :placeholder="options.attrs.placeholder"
-    :size="size"
-    :editable="false"
   />
 </template>
 
@@ -19,8 +18,7 @@ export default {
     inDraw: {
       type: Boolean,
       default: true
-    },
-    size: String
+    }
   },
   data() {
     return {

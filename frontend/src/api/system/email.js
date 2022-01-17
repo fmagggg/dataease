@@ -4,6 +4,7 @@ export function validate(data) {
   return request({
     url: '/system/testConnection',
     method: 'post',
+    timeout: 30000,
     loading: true,
     data
 

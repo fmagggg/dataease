@@ -10,18 +10,10 @@
           </div>
         </div>
       </div>
-      <div
-        ref="deContentContainer"
-        class="condition-content"
-        :class="element.options.attrs.title ? '' : 'condition-content-default'"
-      >
+      <div ref="deContentContainer" class="condition-content" :class="element.options.attrs.title ? '' : 'condition-content-default'">
         <div class="condition-content-container">
           <div class="first-element">
-            <div
-              :class="element.component === 'de-select-grid' ? 'first-element-grid-contaner': ''"
-              class="first-element-contaner"
-            >
-
+            <div :class="element.component === 'de-select-grid' ? 'first-element-grid-contaner': ''" class="first-element-contaner">
               <component
                 :is="element.component"
                 v-if="element.type==='custom'"
@@ -31,11 +23,9 @@
                 :element="element"
                 :in-draw="inDraw"
                 :in-screen="inScreen"
-                :size="sizeInfo"
               />
             </div>
           </div>
-
         </div>
       </div>
     </div>
@@ -44,13 +34,12 @@
 
 <script>
 import elementResizeDetectorMaker from 'element-resize-detector'
-import { mapState } from 'vuex'
 export default {
   name: 'DeOutWidget',
   props: {
     element: {
       type: Object,
-      default: () => {}
+      default: null
     },
     inDraw: {
       type: Boolean,
@@ -60,54 +49,16 @@ export default {
       type: Boolean,
       required: false,
       default: true
-    },
-    h: {
-      type: Number,
-      default: 50
-    },
-    editMode: {
-      type: String,
-      require: false,
-      default: 'edit'
     }
   },
   data() {
     return {
-      inputMaxSize: 46,
-      inputLargeSize: 42,
-      inputSmallSize: 38,
-      inputMiniSize: 32,
       options: null,
       showNumber: false,
-      mainClass: '',
-      mainHeight: 75,
-      duHeight: 46
+      mainClass: ''
     }
   },
-  computed: {
-    sizeInfo() {
-      let size
-      if (this.duHeight > this.inputLargeSize) {
-        size = 'medium'
-      } else if (this.duHeight > this.inputSmallSize) {
-        size = 'small'
-      } else {
-        size = 'mini'
-      }
-      return size
-    },
-    ...mapState([
-      'curCanvasScale'
-    ])
-  },
-  watch: {
-    element: {
-      handler() {
-        this.watchSize()
-      },
-      deep: true
-    }
-  },
+
   mounted() {
     this.watchSize()
   },
@@ -119,75 +70,49 @@ export default {
     watchSize() {
       const erd = elementResizeDetectorMaker()
       erd.listenTo(this.$refs.myContainer, ele => {
-        const deContentContainer = this.$refs.deContentContainer
-        const height = ele.offsetHeight
-        this.mainHeight = height
         if (!this.element.options.attrs.title) {
-          this.duHeight = this.mainHeight
-          deContentContainer.style.marginLeft = '0px'
           return
         }
+        const height = ele.offsetHeight
         const titleWidth = this.$refs.deTitle.offsetWidth
+        const deContentContainer = this.$refs.deContentContainer
         this.$nextTick(() => {
-          let numRange = 0
-          let min = this.element.style.fontSize * 2 + 30
+          let min = 75
           if (this.element.component === 'de-number-range') {
-            min = this.element.style.fontSize * 2 + 55
-            numRange = 25
+            min = 105
           }
           if (height < min) {
-            this.duHeight = height - numRange
+            // console.log(titleWidth)
             this.mainClass = 'condition-main-line'
-
-            if (deContentContainer) {
-              deContentContainer.style.top = '0px'
-              deContentContainer.style.marginLeft = (titleWidth + 15) + 'px'
-            }
+            deContentContainer && (deContentContainer.style.inset = '0 0 0 ' + (titleWidth + 15) + 'px')
           } else {
-            this.duHeight = height - titleWidth + numRange
             this.mainClass = ''
-            if (deContentContainer) {
-              deContentContainer.style.top = '2em'
-              deContentContainer.style.marginLeft = '0px'
-            }
+            deContentContainer && (deContentContainer.style.inset = '33px 0px 0px')
           }
         })
       })
     }
   }
 }
-
 </script>
 
 <style lang="scss" scoped>
   .my-container {
     position: absolute;
     overflow: auto;
-    top: 0px;
-    right: 0px;
-    bottom: 0px;
-    left: 0px;
+    inset: 0px;
   }
-
   .ccondition-main {
     position: absolute;
     overflow: auto;
-    top: 0px;
-    right: 0px;
-    bottom: 0px;
-    left: 0px;
+    inset: 0px;
   }
-
   .condition-title {
-    top: 0px;
-    right: 0px;
-    bottom: 0px;
-    left: 0px;
+    inset: 0;
     position: absolute;
-    height: 2em;
+    height: 35px;
     cursor: -webkit-grab;
   }
-
   .first-title {
     width: 100%;
     overflow: hidden;
@@ -198,13 +123,10 @@ export default {
   }
 
   .condition-title-absolute {
-    right: 0px;
-    bottom: 0px;
+    inset: 0px 0px;
     position: absolute;
-    top: 0px;
+    top: 15px;
     left: 4px;
-    display: flex;
-    align-items: flex-end;
   }
 
   .span-container {
@@ -215,14 +137,10 @@ export default {
 
   .condition-content {
     overflow: auto hidden;
-    top: 2em;
-    left: 0px;
-    right: 0px;
-    bottom: 0px;
+    inset: 33px 0px 0px;
     position: absolute;
-    letter-spacing: 0px !important;
+    letter-spacing: 0px!important;
   }
-
   .condition-content-container {
     position: relative;
     display: table;
@@ -230,7 +148,6 @@ export default {
     height: 100%;
     white-space: nowrap;
   }
-
   .first-element {
     position: relative;
     display: table-cell;
@@ -239,34 +156,25 @@ export default {
     padding: 0px;
     height: 100%;
   }
-
   .first-element-contaner {
-    width: calc(100% - 10px);
-    background: initial;
-    position: absolute;
-    bottom: 5px;
-    margin: 0 4px;
-
-    div {
-      width: 100%;
-    }
-
-    display: flex;
-    align-items: flex-end;
+      width: calc(100% - 10px);
+      background: initial;
+      position:absolute;
+      bottom: 5px;
+      margin: 0 4px;
+      div {
+          width: 100%;
+      }
   }
-
   .first-element-grid-contaner {
-    background: #fff;
-    border: 1px solid #d7dae2;
-    top: 5px;
+      background: #fff;
+      border: 1px solid #d7dae2;
+      top: 5px;
   }
-
   .condition-main-line {
-    height: 40px !important;
+      height: 40px !important;
   }
-
   .condition-content-default {
-    inset: 0px 0px 0px !important;
+      inset: 0px 0px 0px !important;
   }
-
 </style>

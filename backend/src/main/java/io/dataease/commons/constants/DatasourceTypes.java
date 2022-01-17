@@ -12,7 +12,6 @@ public enum DatasourceTypes {
     oracle("oracle", "oracle", "oracle.jdbc.driver.OracleDriver", "\"", "\"", "\"", "\""),
     mongo("mongo", "mongodb", "com.mongodb.jdbc.MongoDriver", "`", "`", "\"", "\""),
     ck("ch", "ch", "ru.yandex.clickhouse.ClickHouseDriver", "`", "`", "'", "'"),
-    db2("db2", "db2", "com.ibm.db2.jcc.DB2Driver", "\"", "\"", "\"", "\""),
     es("es", "es", "", "\"", "\"", "\"", "\""),
     redshift("redshift", "redshift", "org.postgresql.Driver", "\"", "\"", "\"", "\"");
 

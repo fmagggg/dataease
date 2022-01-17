@@ -16,9 +16,7 @@ const dialogPanel = {
       datas: [],
       key: 'id',
       label: 'text',
-      value: 'id',
-      fieldId: '',
-      dragItems: []
+      value: 'id'
     },
     value: ''
   },
@@ -65,7 +63,7 @@ class NumberSelectGridServiceImpl extends WidgetService {
 
   filterFieldMethod(fields) {
     return fields.filter(field => {
-      return field['deType'] === 2 || field['deType'] === 3
+      return field['deType'] === 2
     })
   }
 

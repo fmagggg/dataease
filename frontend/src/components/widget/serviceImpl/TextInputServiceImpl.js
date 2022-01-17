@@ -10,9 +10,7 @@ const dialogPanel = {
   options: {
     attrs: {
       placeholder: 'deinputsearch.placeholder',
-      viewIds: [],
-      fieldId: '',
-      dragItems: []
+      viewIds: []
 
     },
     value: ''

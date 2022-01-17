@@ -173,7 +173,7 @@ export default {
       },
       isTreeSearch: false,
       treeStyle: this.fixHeight ? {
-        height: '300px',
+        height: '200px',
         overflow: 'auto'
       } : {}
     }

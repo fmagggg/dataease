@@ -29,9 +29,4 @@ public class StoreServer implements StoreApi {
     public void remove(String panelId) {
         storeService.removeByPanelId(panelId);
     }
-
-    @Override
-    public Boolean hasStar(String id) {
-        return storeService.count(id) > 0L;
-    }
 }

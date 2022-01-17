@@ -5,19 +5,15 @@
     @click="handleClick"
     @mousedown="elementMouseDown"
   >
-    <edit-bar v-if="componentActiveFlag" :element="config" @showViewDetails="showViewDetails" />
-    <close-bar v-if="previewVisible" @closePreview="closePreview" />
+    <edit-bar v-if="editBarShow" :element="config" @showViewDetails="showViewDetails" />
     <de-out-widget
       v-if="config.type==='custom'"
       :id="'component' + config.id"
       class="component-custom"
       :style="getComponentStyleDefault(config.style)"
-      style="overflow: hidden"
       :out-style="config.style"
       :element="config"
       :in-screen="inScreen"
-      :edit-mode="'preview'"
-      :h="config.style.height"
     />
     <component
       :is="config.component"
@@ -27,12 +23,10 @@
       :style="getComponentStyleDefault(config.style)"
       :prop-value="config.propValue"
       :is-edit="false"
-      :active="componentActiveFlag"
       :element="config"
       :search-count="searchCount"
       :h="config.style.height"
       :edit-mode="'preview'"
-      :terminal="terminal"
     />
   </div>
 </template>
@@ -45,10 +39,9 @@ import { mapState } from 'vuex'
 import DeOutWidget from '@/components/dataease/DeOutWidget'
 import EditBar from '@/components/canvas/components/Editor/EditBar'
 import MobileCheckBar from '@/components/canvas/components/Editor/MobileCheckBar'
-import CloseBar from '@/components/canvas/components/Editor/CloseBar'
 
 export default {
-  components: { CloseBar, MobileCheckBar, DeOutWidget, EditBar },
+  components: { MobileCheckBar, DeOutWidget, EditBar },
   mixins: [mixins],
   props: {
     config: {
@@ -70,23 +63,14 @@ export default {
       type: Boolean,
       required: false,
       default: true
-    },
-    terminal: {
-      type: String,
-      default: 'pc'
-    }
-  },
-  data() {
-    return {
-      previewVisible: false
     }
   },
   computed: {
-    componentActiveFlag() {
-      return (this.curComponent && this.config === this.curComponent) && !this.previewVisible
+    editBarShow() {
+      return this.curComponent && this.config === this.curComponent
     },
     curGap() {
-      return (this.canvasStyleData.panel.gap === 'yes' && this.config.auxiliaryMatrix) ? this.componentGap : 0
+      return this.config.auxiliaryMatrix ? this.componentGap : 0
     },
     ...mapState([
       'mobileLayoutStatus',
@@ -150,11 +134,7 @@ export default {
           height: '100%'
         }
       } else {
-        if (this.terminal === 'pc') {
-          return getStyle(style, ['top', 'left', 'width', 'height', 'rotate'])
-        } else {
-          return getStyle(style, ['top', 'left', 'width', 'height', 'rotate', 'fontSize'])
-        }
+        return getStyle(style, ['top', 'left', 'width', 'height', 'rotate'])
       }
     },
 
@@ -176,9 +156,6 @@ export default {
     },
     showViewDetails() {
       this.$refs.wrapperChild.openChartDetailsDialog()
-    },
-    closePreview() {
-      this.previewVisible = false
     }
   }
 }
@@ -190,7 +167,7 @@ export default {
   }
 
   .component:hover {
-    box-shadow: 0px 0px 3px #0a7be0;
+    box-shadow: 0px 0px 7px #0a7be0;
   }
 
   .gap_class {

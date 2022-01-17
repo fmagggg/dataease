@@ -4,18 +4,13 @@
       {{ $t('panel.component_hidden') }}
     </el-row>
     <el-row class="component-wait-main">
-      <el-col
-        :span="8"
+      <component-wait-item
         v-for="(config, index) in pcComponentData"
         v-if="!config.mobileSelected"
         :id="'wait' + config.id"
         :key="index"
-      >
-        <component-wait-item
-          :config="config"
-        />
-      </el-col>
-
+        :config="config"
+      />
     </el-row>
 
   </el-row>
@@ -86,8 +81,8 @@ export default {
   .component-wait-main {
     width: 100%;
     height: calc(100% - 30px);
-    float: left;
     overflow-y: auto;
+    background-color: lightgray;
   }
   .component-custom {
     outline: none;

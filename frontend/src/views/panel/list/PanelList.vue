@@ -235,7 +235,6 @@ import {
 } from '@/views/panel/panel'
 import TreeSelector from '@/components/TreeSelector'
 import { queryAuthModel } from '@/api/authModel/authModel'
-import { panelInit } from '@/components/canvas/utils/utils'
 
 export default {
   name: 'PanelList',
@@ -392,7 +391,6 @@ export default {
       this.editPanel.visible = false
       if (panelInfo) {
         this.defaultTree()
-        this.tree()
         // 默认展开 同时点击 新增的节点
         if (panelInfo && panelInfo.panelType === 'self' && this.lastActiveNodeData.id) {
           if (this.editPanel.optType === 'rename') {
@@ -410,6 +408,8 @@ export default {
             this.lastActiveNode.expanded = true
           }
           this.activeNodeAndClick(panelInfo)
+        } else {
+          this.tree()
         }
       }
     },
@@ -448,8 +448,7 @@ export default {
             panelInfo: {
               id: param.data.id,
               pid: param.data.pid,
-              name: param.data.name,
-              nodeType: param.type
+              name: param.data.name
             }
           }
           break
@@ -460,8 +459,7 @@ export default {
             panelInfo: {
               id: param.data.id,
               name: param.data.name,
-              optType: 'toDefaultPanel',
-              nodeType: param.type
+              optType: 'toDefaultPanel'
             }
           }
           break
@@ -473,8 +471,7 @@ export default {
             panelInfo: {
               id: param.data.id,
               name: param.data.name,
-              optType: 'copy',
-              nodeType: param.type
+              optType: 'copy'
             }
           }
           break
@@ -647,12 +644,18 @@ export default {
       this.lastActiveNodeData = data
       this.activeTree = data.panelType
       if (data.nodeType === 'panel') {
-        // 清理pc布局缓存
-        this.$store.commit('setComponentDataCache', null)
         // 加载视图数据
         findOne(data.id).then(response => {
           const componentDatas = JSON.parse(response.data.panelData)
-          panelInit(componentDatas)
+          componentDatas.forEach(item => {
+            item.filters = (item.filters || [])
+            item.linkageFilters = (item.linkageFilters || [])
+            item.auxiliaryMatrix = (item.auxiliaryMatrix || false)
+            item.x = (item.x || 1)
+            item.y = (item.y || 1)
+            item.sizex = (item.sizex || 5)
+            item.sizey = (item.sizey || 5)
+          })
           this.$store.commit('setComponentData', this.resetID(componentDatas))
           const temp = JSON.parse(response.data.panelStyle)
           temp.refreshTime = (temp.refreshTime || 5)

@@ -4,7 +4,6 @@
     v-if="options!== null && options.attrs!==null"
     :type="options.attrs.type"
     :round="options.attrs.round"
-    :size="size"
   >
     {{ options.value }}
   </el-button>
@@ -21,8 +20,7 @@ export default {
     inDraw: {
       type: Boolean,
       default: true
-    },
-    size: String
+    }
   },
   data() {
     return {

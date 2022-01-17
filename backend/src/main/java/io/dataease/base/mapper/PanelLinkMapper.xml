@@ -2,12 +2,11 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="io.dataease.base.mapper.PanelLinkMapper">
   <resultMap id="BaseResultMap" type="io.dataease.base.domain.PanelLink">
-    <result column="resource_id" jdbcType="VARCHAR" property="resourceId" />
+    <id column="resource_id" jdbcType="VARCHAR" property="resourceId" />
     <result column="valid" jdbcType="BIT" property="valid" />
     <result column="enable_pwd" jdbcType="BIT" property="enablePwd" />
     <result column="pwd" jdbcType="VARCHAR" property="pwd" />
     <result column="over_time" jdbcType="BIGINT" property="overTime" />
-    <result column="user_id" jdbcType="BIGINT" property="userId" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -68,7 +67,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    resource_id, `valid`, enable_pwd, pwd, over_time, user_id
+    resource_id, `valid`, enable_pwd, pwd, over_time
   </sql>
   <select id="selectByExample" parameterType="io.dataease.base.domain.PanelLinkExample" resultMap="BaseResultMap">
     select
@@ -84,6 +83,16 @@
       order by ${orderByClause}
     </if>
   </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from panel_link
+    where resource_id = #{resourceId,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from panel_link
+    where resource_id = #{resourceId,jdbcType=VARCHAR}
+  </delete>
   <delete id="deleteByExample" parameterType="io.dataease.base.domain.PanelLinkExample">
     delete from panel_link
     <if test="_parameter != null">
@@ -92,11 +101,9 @@
   </delete>
   <insert id="insert" parameterType="io.dataease.base.domain.PanelLink">
     insert into panel_link (resource_id, `valid`, enable_pwd, 
-      pwd, over_time, user_id
-      )
+      pwd, over_time)
     values (#{resourceId,jdbcType=VARCHAR}, #{valid,jdbcType=BIT}, #{enablePwd,jdbcType=BIT}, 
-      #{pwd,jdbcType=VARCHAR}, #{overTime,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}
-      )
+      #{pwd,jdbcType=VARCHAR}, #{overTime,jdbcType=BIGINT})
   </insert>
   <insert id="insertSelective" parameterType="io.dataease.base.domain.PanelLink">
     insert into panel_link
@@ -116,9 +123,6 @@
       <if test="overTime != null">
         over_time,
       </if>
-      <if test="userId != null">
-        user_id,
-      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="resourceId != null">
@@ -135,9 +139,6 @@
       </if>
       <if test="overTime != null">
         #{overTime,jdbcType=BIGINT},
-      </if>
-      <if test="userId != null">
-        #{userId,jdbcType=BIGINT},
       </if>
     </trim>
   </insert>
@@ -165,9 +166,6 @@
       <if test="record.overTime != null">
         over_time = #{record.overTime,jdbcType=BIGINT},
       </if>
-      <if test="record.userId != null">
-        user_id = #{record.userId,jdbcType=BIGINT},
-      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -179,10 +177,35 @@
       `valid` = #{record.valid,jdbcType=BIT},
       enable_pwd = #{record.enablePwd,jdbcType=BIT},
       pwd = #{record.pwd,jdbcType=VARCHAR},
-      over_time = #{record.overTime,jdbcType=BIGINT},
-      user_id = #{record.userId,jdbcType=BIGINT}
+      over_time = #{record.overTime,jdbcType=BIGINT}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="io.dataease.base.domain.PanelLink">
+    update panel_link
+    <set>
+      <if test="valid != null">
+        `valid` = #{valid,jdbcType=BIT},
+      </if>
+      <if test="enablePwd != null">
+        enable_pwd = #{enablePwd,jdbcType=BIT},
+      </if>
+      <if test="pwd != null">
+        pwd = #{pwd,jdbcType=VARCHAR},
+      </if>
+      <if test="overTime != null">
+        over_time = #{overTime,jdbcType=BIGINT},
+      </if>
+    </set>
+    where resource_id = #{resourceId,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="io.dataease.base.domain.PanelLink">
+    update panel_link
+    set `valid` = #{valid,jdbcType=BIT},
+      enable_pwd = #{enablePwd,jdbcType=BIT},
+      pwd = #{pwd,jdbcType=VARCHAR},
+      over_time = #{overTime,jdbcType=BIGINT}
+    where resource_id = #{resourceId,jdbcType=VARCHAR}
   </update>
 </mapper>

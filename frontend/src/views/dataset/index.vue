@@ -26,7 +26,6 @@ import AddCustom from './add/AddCustom'
 import AddUnion from '@/views/dataset/add/AddUnion'
 import FieldEdit from './data/FieldEdit'
 import { removeClass } from '@/utils'
-import { checkCustomDs } from '@/api/dataset/dataset'
 export default {
   name: 'DataSet',
   components: { DeMainContainer, DeContainer, DeAsideContainer, Group, DataHome, ViewTable, AddDB, AddSQL, AddExcel, AddCustom },
@@ -41,17 +40,11 @@ export default {
     removeClass(document.body, 'showRightPanel')
   },
   created() {
-    this.initDs()
     this.$store.dispatch('app/toggleSideBarHide', true)
     const routerParam = this.$router.currentRoute.params
     this.toMsgShare(routerParam)
   },
   methods: {
-    initDs() {
-      checkCustomDs().then(res => {
-        this.$store.dispatch('dataset/setHideCustomDs', res.data)
-      })
-    },
     switchComponent(c) {
       this.param = c.param
       switch (c.name) {

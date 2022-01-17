@@ -15,7 +15,5 @@ public class PanelLink implements Serializable {
 
     private Long overTime;
 
-    private Long userId;
-
     private static final long serialVersionUID = 1L;
 }

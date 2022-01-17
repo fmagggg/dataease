@@ -15,7 +15,11 @@
         <el-link class="de-link" style="width: 370px;" disabled>{{ $t('panel.link_share_desc') }}</el-link>
       </el-form-item>
       <el-form-item v-if="valid" :label="$t('panel.link')">
-        <el-input v-model.number="form.uri" disabled style="width: 370px;" />
+        <el-input
+          v-model.number="form.uri"
+          disabled
+          style="width: 370px;"
+        />
       </el-form-item>
 
       <el-form-item v-if="valid" :label="$t('panel.over_time')" prop="overTime">
@@ -33,34 +37,17 @@
       </el-form-item>
 
       <el-form-item v-if="valid" label=" ">
-        <el-checkbox v-model="form.enablePwd" @change="resetEnablePwd">{{ $t('panel.passwd_protect') }} </el-checkbox>
+        <el-checkbox v-model="form.enablePwd" @change="resetEnablePwd">{{ $t('panel.passwd_protect') }}  </el-checkbox>
 
         <span v-if="form.enablePwd" class="de-span">{{ form.pwd }}</span>
-        <span v-if="form.enablePwd" class="de-span" @click="resetPwd">
-          <el-link :underline="false" type="primary">{{ $t('commons.reset') }}</el-link>
-        </span>
+        <span v-if="form.enablePwd" class="de-span" @click="resetPwd"><el-link :underline="false" type="primary">{{ $t('commons.reset') }}</el-link></span>
       </el-form-item>
 
       <div v-if="valid" class="auth-root-class">
         <span slot="footer">
 
-          <el-button
-            v-if="!form.enablePwd"
-            v-clipboard:copy="form.uri"
-            v-clipboard:success="onCopy"
-            v-clipboard:error="onError"
-            size="mini"
-            type="primary"
-          >{{ $t('panel.copy_link') }}</el-button>
-          <el-button
-            v-if="form.enablePwd"
-            v-clipboard:copy="form.uri + ' Password: '+ form.pwd"
-            v-clipboard:success="onCopy"
-            v-clipboard:error="onError"
-            size="mini"
-            type="primary"
-          >
-            {{ $t('panel.copy_link_passwd') }}</el-button>
+          <el-button v-if="!form.enablePwd" v-clipboard:copy="form.uri" v-clipboard:success="onCopy" v-clipboard:error="onError" size="mini" type="primary">{{ $t('panel.copy_link') }}</el-button>
+          <el-button v-if="form.enablePwd" v-clipboard:copy="form.uri + ' Password: '+ form.pwd" v-clipboard:success="onCopy" v-clipboard:error="onError" size="mini" type="primary">{{ $t('panel.copy_link_passwd') }}</el-button>
 
         </span>
       </div>
@@ -69,14 +56,8 @@
   </div>
 </template>
 <script>
-import {
-  loadGenerate,
-  setPwd,
-  switchValid,
-  switchEnablePwd,
-  shortUrl,
-  setOverTime
-} from '@/api/link'
+
+import { loadGenerate, setPwd, switchValid, switchEnablePwd, shortUrl, setOverTime } from '@/api/link'
 export default {
 
   name: 'LinkGenerate',
@@ -94,11 +75,7 @@ export default {
       pwdNums: 4,
       valid: false,
       form: {},
-      defaultForm: {
-        enablePwd: false,
-        pwd: null,
-        uri: null
-      },
+      defaultForm: { enablePwd: false, pwd: null, uri: null },
       pickerOptions: {
         disabledDate: time => {
           return time.getTime() < (Date.now() - 8.64e7)
@@ -126,11 +103,9 @@ export default {
         minTime: '15:51'
       },
       rules: {
-        overTime: [{
-          required: false,
-          validator: this.validateMin,
-          trigger: 'blur'
-        }]
+        overTime: [
+          { required: false, validator: this.validateMin, trigger: 'blur' }
+        ]
       }
     }
   },
@@ -147,13 +122,7 @@ export default {
 
     currentGenerate() {
       loadGenerate(this.resourceId).then(res => {
-        const {
-          valid,
-          enablePwd,
-          pwd,
-          uri,
-          overTime
-        } = res.data
+        const { valid, enablePwd, pwd, uri, overTime } = res.data
         this.valid = valid
         this.form.enablePwd = enablePwd
         this.form.uri = uri ? (this.origin + uri) : uri
@@ -214,7 +183,7 @@ export default {
           overTime: value
         }
         setOverTime(param).then(res => {
-          // this.form.overTime = value
+        // this.form.overTime = value
           this.$forceUpdate()
         })
       })
@@ -223,7 +192,8 @@ export default {
     onCopy(e) {
       this.$success(this.$t('commons.copy_success'))
     },
-    onError(e) {},
+    onError(e) {
+    },
     onChange(value) {
       const param = {
         resourceId: this.resourceId,
@@ -237,9 +207,7 @@ export default {
       const url = this.form.uri
       if (!url) return
 
-      shortUrl({
-        resourceId: this.resourceId
-      }).then(res => {
+      shortUrl({ resourceId: this.resourceId }).then(res => {
         if (res.success) {
           this.form.uri = this.origin + res.data
         }
@@ -260,19 +228,15 @@ export default {
         return new Date(tom.format('yyyy-MM-dd') + ' 23:59:59')
       }
       if (type === 'month') {
-        const nowMonth = now.getMonth()
-        const nowYear = now.getFullYear()
-        let nowDate = now.getDate()
-
-        const tarYear = nowYear
-        const deffMonth = nowMonth + 1
-        const diffYear = deffMonth / 12
-
-        const targetMonth = deffMonth % 12
-        const days = this.getMonthDays(targetMonth)
-        nowDate = nowDate > days ? days : nowDate
-
-        return new Date(tarYear + diffYear, deffMonth % 12, nowDate, 23, 59, 59)
+        const result = new Date()
+        const curMonth = now.getMonth() + 1
+        if (curMonth === 12) {
+          result.setYear(now.getYear() + 1)
+          result.setMonth(0)
+        } else {
+          result.setMonth(curMonth)
+        }
+        return new Date(result.format('yyyy-MM-dd') + ' 23:59:59')
       }
       return null
     },
@@ -283,32 +247,21 @@ export default {
         return callback(new Error('不能小于当前时间'))
       }
       return callback()
-    },
-    getMonthDays(nowMonth) {
-      var now = new Date()
-
-      var monthStartDate = new Date(now.getFullYear(), nowMonth, 1)
-      var monthEndDate = new Date(now.getFullYear(), nowMonth + 1, 1)
-      var days = (monthEndDate - monthStartDate) / (1000 * 60 * 60 * 24)
-      return days
     }
   }
 }
-
 </script>
 
 <style lang="scss" scoped>
-  .de-link {
-    justify-content: left !important;
-  }
-
-  .de-span {
-    margin: 0 15px;
-  }
-
-  .auth-root-class {
-    margin: 15px 0px 5px;
-    text-align: right;
-  }
+    .de-link{
+        justify-content: left !important;
+    }
+    .de-span {
+        margin: 0 15px;
+    }
+    .auth-root-class {
+        margin: 15px 0px 5px;
+        text-align: right;
+    }
 
 </style>
